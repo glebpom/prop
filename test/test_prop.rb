@@ -4,19 +4,23 @@ class TestProp < Test::Unit::TestCase
 
   context "Prop" do
     setup do
-      store = {}
-      Prop.read  { |key| store[key] }
-      Prop.write { |key, value| store[key] = value }
+      @store = {}
+      Prop.read  { |key| @store[key] }
+      Prop.write { |key, value| @store[key] = value }
 
       @start = Time.now
       Time.stubs(:now).returns(@start)
     end
 
-    {"with incrementer" => lambda { Prop.incrementer { |key, inc| store[key] += inc } },
-     "without incrementer" => lambda {} }.each do |desc, setup_block|
+    {"with incrementer" => lambda { Prop.increment { |key, inc| @store[key] ? @store[key] += inc : @store[key] = inc } },
+     "without incrementer" => lambda {} }.each do |desc, setup_block_for_context|
        context desc do
          setup do
-           setup_block.call
+           instance_eval(&setup_block_for_context)
+         end
+
+         teardown do
+           Prop.instance_variable_set("@incrementer", nil)
          end
 
          context "#defaults" do

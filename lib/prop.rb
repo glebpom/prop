@@ -33,13 +33,13 @@ class Prop
       self.incrementer = blk
     end
 
-    def inrementer=(value)
+    def incrementer=(value)
       @incrementer = value
     end
 
     def incrementer
-      @incrementer ? Proc.new { |key, inc| @incrementer.call(key,inc) } :
-        Proc.new { |key, inc| self.writer.call(key, (self.reader.call(key).to_i || 0) + inc) }
+      @incrementer ? Proc.new { |key, inc| @incrementer.call(key, inc) } :
+        Proc.new { |key, inc| self.writer.call(key, (self.reader.call(key) || 0).to_i + inc) }
     end
 
     def defaults(handle, defaults)
