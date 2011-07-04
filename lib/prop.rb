@@ -29,6 +29,19 @@ class Prop
       self.writer = blk
     end
 
+    def increment(&blk)
+      self.incrementer = blk
+    end
+
+    def inrementer=(value)
+      @incrementer = value
+    end
+
+    def incrementer
+      @incrementer ? Proc.new { |key, inc| @incrementer.call(key,inc) } :
+        Proc.new { |key, inc| self.writer.call(key, (self.reader.call(key).to_i || 0) + inc) }
+    end
+
     def defaults(handle, defaults)
       raise RuntimeError.new("Invalid threshold setting") unless defaults[:threshold].to_i > 0
       raise RuntimeError.new("Invalid interval setting")  unless defaults[:interval].to_i > 0
@@ -45,7 +58,7 @@ class Prop
       if counter >= options[:threshold]
         raise Prop::RateLimitExceededError.create(handle, normalize_cache_key(key), options[:threshold])
       else
-        writer.call(cache_key, counter + [ 1, options[:increment].to_i ].max)
+        incrementer.call(cache_key, [ 1, options[:increment].to_i ].max)
       end
     end
 
