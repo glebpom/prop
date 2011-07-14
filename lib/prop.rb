@@ -55,10 +55,10 @@ class Prop
       cache_key = sanitized_prop_key(key, options[:interval])
       counter   = reader.call(cache_key).to_i
 
+      incrementer.call(cache_key, [ 1, options[:increment].to_i ].max)
+
       if counter >= options[:threshold]
         raise Prop::RateLimitExceededError.create(handle, normalize_cache_key(key), options[:threshold])
-      else
-        incrementer.call(cache_key, [ 1, options[:increment].to_i ].max)
       end
     end
 
